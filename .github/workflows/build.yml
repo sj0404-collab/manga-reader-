@@ -1,4 +1,4 @@
-name: Build APK (Stability Fix)
+name: Build APK (V7 Clean)
 on:
   push:
     branches: [ main, master ]
@@ -28,7 +28,7 @@ jobs:
       - name: Install JS Dependencies
         run: npm install --legacy-peer-deps
 
-      - name: Patch Gradle Files (Force Stability)
+      - name: Patch Gradle Files
         run: |
           # 1. settings.gradle.kts
           cat > settings.gradle.kts << 'EOF'
@@ -43,37 +43,34 @@ jobs:
           include(":app")
           EOF
 
-          # 2. build.gradle.kts
+          # 2. build.gradle.kts (Упрощенный до предела)
           cat > build.gradle.kts << 'EOF'
           buildscript {
               repositories { google(); mavenCentral() }
               dependencies {
-                  classpath("com.android.tools.build:gradle:8.2.0")
-                  classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.20")
-                  classpath("com.google.dagger:hilt-android-gradle-plugin:2.48")
+                  classpath("com.android.tools.build:gradle:8.1.0")
+                  classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.8.10")
+                  classpath("com.google.dagger:hilt-android-gradle-plugin:2.44")
               }
           }
           EOF
 
-          # 3. gradle.properties (ОТКЛЮЧАЕМ ГЛЮЧНУЮ СЛУЖБУ)
+          # 3. gradle.properties (БЕЗ ГЛЮЧНЫХ ПАРАМЕТРОВ)
           cat > gradle.properties << 'EOF'
           org.gradle.jvmargs=-Xmx2048m -XX:MaxMetaspaceSize=512m
           android.useAndroidX=true
           android.nonTransitiveRClass=true
-          # Фикс для той самой ошибки с buildFlowService
-          kotlin.build.report.output=none
           EOF
-          echo "Конфиги стабилизированы!"
+          echo "Конфиги очищены от лишнего!"
 
-      - name: Create Gradle Wrapper (8.2.1)
+      - name: Create Gradle Wrapper (8.1)
         run: |
-          # Используем версию 8.2.1 вместо 8.4
-          gradle wrapper --gradle-version 8.2.1
+          # Откатываемся на 8.1 для максимальной совместимости
+          gradle wrapper --gradle-version 8.1
           chmod +x gradlew
 
       - name: Build Debug APK
-        # Собираем. Добавил --no-build-cache на всякий случай
-        run: ./gradlew :app:assembleDebug --no-daemon --stacktrace --no-build-cache
+        run: ./gradlew :app:assembleDebug --no-daemon --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
