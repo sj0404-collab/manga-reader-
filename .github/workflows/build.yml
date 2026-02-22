@@ -20,42 +20,15 @@ jobs:
       - name: Install Gradle
         uses: gradle/actions/setup-gradle@v3
         with:
-          gradle-version: '8.2'
+          gradle-version: '8.4'
 
       - name: Extract project
         run: |
-          unzip project-bolt-sb1-9fquoce7.zip -d extracted || true
-          cp -r extracted/project/* . || true
-
-      - name: Setup gradle wrapper
-        run: |
-          mkdir -p gradle/wrapper
-          wget -q https://services.gradle.org/distributions/gradle-8.2.0-bin.zip -O /tmp/gradle.zip || curl -L https://services.gradle.org/distributions/gradle-8.2.0-bin.zip -o /tmp/gradle.zip
-          unzip -q /tmp/gradle.zip -d /tmp/gradle-dist
-          GRADLE_BIN=/tmp/gradle-dist/gradle-8.2.0/bin/gradle
-          chmod +x $GRADLE_BIN
-          $GRADLE_BIN wrapper --gradle-version=8.2.0
-          chmod +x gradlew
-
-      - name: Check project structure
-        run: |
-          echo "=== Root files ==="
-          ls -la
-          echo "=== App dir ==="
-          ls -la app/ || echo "No app dir!"
-          echo "=== Gradle files ==="
-          ls -la gradle/wrapper/ || echo "No wrapper!"
+          unzip project-bolt-sb1-9fquoce7.zip -d extracted
+          cp -r extracted/project/* .
 
       - name: Build Debug APK
-        run: ./gradlew assembleDebug --stacktrace
-
-      - name: Upload APK
-        uses: actions/upload-artifact@v4
-        with:
-          name: manga-reader-debug
-          path: app/build/outputs/apk/debug/app-debug.apk
-      - name: Build Debug APK
-        run: ./gradlew assembleDebug
+        run: gradle assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
