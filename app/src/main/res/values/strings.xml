@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Manga Talk Reader</string>
+    <string name="action_settings">Настройки</string>
+    <string name="title_library">Библиотека</string>
+    <string name="title_reader">Читалка</string>
+    <string name="title_settings">Настройки</string>
+    <string name="title_collections">Коллекции</string>
+    <string name="title_sources">Источники</string>
+    <string name="search_hint">Поиск манги...</string>
+    <string name="empty_library">Нет манги в библиотеке</string>
+    <string name="next_page">Следующая страница</string>
+    <string name="previous_page">Предыдущая страница</string>
+    <string name="add_manga">Добавить мангу</string>
+    <string name="delete">Удалить</string>
+    <string name="cancel">Отмена</string>
+    <string name="ok">OK</string>
+    <string name="loading">Загрузка...</string>
+    <string name="error">Ошибка</string>
+    <string name="retry">Повторить</string>
+</resources>
