@@ -33,3 +33,15 @@ yarn-error.*
 
 # typescript
 *.tsbuildinfo
+
+# Android build
+.gradle/
+build/
+app/build/
+local.properties
+*.apk
+*.aab
+
+# Gradle wrapper jar (generated via `gradle wrapper`)
+# We keep properties but not the jar to avoid binary in git
+# The CI will generate it with `gradle wrapper`

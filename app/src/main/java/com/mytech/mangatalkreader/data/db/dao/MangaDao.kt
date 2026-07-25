@@ -37,7 +37,7 @@ interface MangaDao {
     @Query("DELETE FROM manga WHERE id = :id")
     suspend fun deleteById(id: Long)
 
-    @Query("UPDATE manga SET progress = :progress, lastReadDate = datetime('now') WHERE id = :id")
+    @Query("UPDATE manga SET progress = :progress, lastReadDate = (strftime('%s','now') * 1000) WHERE id = :id")
     suspend fun updateProgress(id: Long, progress: Float)
 
     @Query("UPDATE manga SET isRead = :isRead WHERE id = :id")
