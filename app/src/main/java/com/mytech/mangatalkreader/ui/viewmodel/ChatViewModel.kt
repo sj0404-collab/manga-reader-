@@ -1,13 +1,17 @@
 package com.mytech.mangatalkreader.ui.viewmodel
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.mytech.mangatalkreader.service.AiTranslationService
 import com.mytech.mangatalkreader.service.TtsService
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 data class ChatMessage(
@@ -29,7 +33,7 @@ enum class AiPersona(
     MANGA_EXPERT(
         "Манга-Эксперт",
         "📚",
-        "Знает всё о манге, аниме и японской культуре",
+        "Знает всё о манге, аниме и японской культуре. Рекомендует мангу, рассказывает о жанрах и авторах.",
         "ru",
         mapOf(
             "манга" to "Я рекомендую начинать с классики — 'Akira', 'Ghost in the Shell', 'Berserk'. Для новичков отлично подходят 'One Piece' и 'My Hero Academia'!",
@@ -42,10 +46,10 @@ enum class AiPersona(
     OCR_HELPER(
         "OCR-Помощник",
         "🔍",
-        "Помогает с распознаванием текста и переводом",
+        "Помогает с распознаванием текста и переводом из манги на русский язык.",
         "ru",
         mapOf(
-            "перевод" to "Я могу помочь перевести распознанный текст! Японский → русский или английский. Включи OCR в читалке и нажми кнопку перевода.",
+            "перевод" to "Я могу помочь перевести распознанный текст! Японский → русский или английский → русский. Включи OCR в читалке и нажми кнопку перевода.",
             "японский" to "Для японского текста лучше всего использовать наш OCR с японским языком. Он распознает как кана (ひらがな/カタカナ), так и кандзи (漢字).",
             "текст" to "Если OCR плохо распознаёт — попробуй увеличить контраст в настройках Image Preprocessor. Или выбери другой язык распознавания.",
             "распознать" to "Наш OCR поддерживает 5 языков: английский, японский, китайский, корейский и деванагари. Переключайся в настройках!",
@@ -55,7 +59,7 @@ enum class AiPersona(
     TTS_VOICE(
         "TTS-Голос",
         "🔊",
-        "Настраивает озвучку и помогает с TTS",
+        "Настраивает озвучку и помогает с TTS. Все переведённые тексты озвучиваются на русском.",
         "ru",
         mapOf(
             "озвучка" to "Я могу озвучить любой распознанный текст! Настрой скорость и тон в настройках. Поддерживаемые языки: русский, английский, японский.",
@@ -69,7 +73,9 @@ enum class AiPersona(
 
 @HiltViewModel
 class ChatViewModel @Inject constructor(
-    private val ttsService: TtsService
+    private val ttsService: TtsService,
+    private val aiService: AiTranslationService,
+    @dagger.hilt.android.qualifiers.ApplicationContext private val context: Context
 ) : ViewModel() {
 
     private val _messages = MutableStateFlow<List<ChatMessage>>(emptyList())
@@ -86,6 +92,22 @@ class ChatViewModel @Inject constructor(
     private val _speakingPersonaName = MutableStateFlow<String?>(null)
     val speakingPersonaName: StateFlow<String?> = _speakingPersonaName.asStateFlow()
 
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
+
+    init {
+        // Load API key from SharedPreferences
+        loadApiKey()
+    }
+
+    private fun loadApiKey() {
+        val prefs = context.getSharedPreferences("manga_settings", 0)
+        val apiKey = prefs.getString("openrouter_api_key", "") ?: ""
+        aiService.setApiKey(apiKey)
+        val model = prefs.getString("openrouter_model", "openrouter/auto") ?: "openrouter/auto"
+        aiService.setModel(model)
+    }
+
     fun sendMessage(userText: String) {
         val userMessage = ChatMessage(
             text = userText,
@@ -93,11 +115,36 @@ class ChatViewModel @Inject constructor(
         )
         _messages.value = _messages.value + userMessage
 
-        // Each active AI responds with relevant info
         viewModelScope.launch {
+            _isLoading.value = true
             val personas = _activePersonas.value
+            val hasApiKey = aiService.apiKey.isNotBlank()
+
             for (persona in personas) {
-                val response = generateAiResponse(persona, userText)
+                val response: String
+
+                if (hasApiKey) {
+                    // Use OpenRouter AI for real responses
+                    try {
+                        response = withContext(Dispatchers.IO) {
+                            aiService.chatWithPersona(
+                                personaName = "${persona.emoji} ${persona.displayName}",
+                                personaDescription = persona.personality,
+                                userMessage = userText
+                            )
+                        }
+                        if (response.isBlank() || response.startsWith("Ошибка")) {
+                            // Fallback to local responses on error
+                            response = generateLocalResponse(persona, userText)
+                        }
+                    } catch (e: Exception) {
+                        response = generateLocalResponse(persona, userText)
+                    }
+                } else {
+                    // No API key — use local sample responses
+                    response = generateLocalResponse(persona, userText)
+                }
+
                 val aiMessage = ChatMessage(
                     text = response,
                     isFromUser = false,
@@ -106,21 +153,24 @@ class ChatViewModel @Inject constructor(
                 )
                 _messages.value = _messages.value + aiMessage
 
-                // Speak AI responses in turn
+                // Speak AI responses in turn (in Russian)
                 _speakingPersonaName.value = persona.displayName
                 _isSpeaking.value = true
-                ttsService.speak("${persona.displayName} говорит: $response")
-                // Small delay between personas
+                ttsService.setLanguage(java.util.Locale("ru", "RU"))
+                ttsService.speakAsync("${persona.displayName} говорит: $response")
                 kotlinx.coroutines.delay(500)
             }
+
+            _isLoading.value = false
+            // Wait for TTS to finish
+            kotlinx.coroutines.delay(3000)
             _isSpeaking.value = false
             _speakingPersonaName.value = null
         }
     }
 
-    private fun generateAiResponse(persona: AiPersona, userText: String): String {
+    private fun generateLocalResponse(persona: AiPersona, userText: String): String {
         val lower = userText.lowercase()
-        // Find best matching key
         val bestMatch = persona.sampleResponses.entries
             .filter { lower.contains(it.key) }
             .maxByOrNull { it.key.length }

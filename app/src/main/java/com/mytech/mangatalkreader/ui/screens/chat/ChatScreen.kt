@@ -63,6 +63,7 @@ fun ChatScreen(
     val activePersonas by viewModel.activePersonas.collectAsState()
     val isSpeaking by viewModel.isSpeaking.collectAsState()
     val speakingPersona by viewModel.speakingPersonaName.collectAsState()
+    val isLoading by viewModel.isLoading.collectAsState()
     var inputText by remember { mutableStateOf("") }
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
@@ -103,6 +104,34 @@ fun ChatScreen(
             // Speaking indicator
             if (isSpeaking && speakingPersona != null) {
                 SpeakingIndicator(speakingPersona = speakingPersona!!)
+            }
+
+            // AI loading indicator
+            if (isLoading && !isSpeaking) {
+                Card(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp, vertical = 2.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.tertiaryContainer
+                    )
+                ) {
+                    Row(
+                        modifier = Modifier.padding(12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(16.dp),
+                            strokeWidth = 2.dp
+                        )
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            "🤖 AI думает...",
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.tertiary
+                        )
+                    }
+                }
             }
 
             // Chat messages

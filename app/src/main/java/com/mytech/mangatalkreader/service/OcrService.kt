@@ -69,7 +69,7 @@ class OcrService @Inject constructor(
     @ApplicationContext private val context: Context
 ) {
 
-    private var currentLanguage: OcrLanguage = OcrLanguage.ENGLISH
+    var currentLanguage: OcrLanguage = OcrLanguage.ENGLISH
 
     /** Map of lazily-created recognizers keyed by language. */
     private val recognizers = mutableMapOf<OcrLanguage, com.google.mlkit.vision.text.TextRecognizer>()
@@ -140,10 +140,10 @@ class OcrService @Inject constructor(
     }
 
     /**
-     * Internal implementation shared by both public methods.
-     * Returns structured [OcrResult] objects.
+     * Public method to recognize text from a [Bitmap] and return
+     * structured [OcrResult] objects with bounding boxes and confidence.
      */
-    private suspend fun recognizeFromBitmapInternal(bitmap: Bitmap): List<OcrResult> {
+    suspend fun recognizeFromBitmapInternal(bitmap: Bitmap): List<OcrResult> {
         val recognizer = getRecognizer(currentLanguage)
         val inputImage = InputImage.fromBitmap(bitmap, 0 /* rotationOverride */)
 
