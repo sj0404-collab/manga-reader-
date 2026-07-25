@@ -2,89 +2,41 @@ package com.mytech.mangatalkreader.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.mytech.mangatalkreader.data.model.Manga
-import com.mytech.mangatalkreader.data.repository.MangaRepository
+import com.mytech.mangatalkreader.data.db.dao.MangaDao
+import com.mytech.mangatalkreader.data.db.entity.MangaEntity
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.launch
-import timber.log.Timber
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.firstOrNull
 import javax.inject.Inject
 
 @HiltViewModel
 class LibraryViewModel @Inject constructor(
-    private val mangaRepository: MangaRepository
+    private val mangaDao: MangaDao
 ) : ViewModel() {
 
-    private val _mangaList = MutableStateFlow<List<Manga>>(emptyList())
-    val mangaList: StateFlow<List<Manga>> = _mangaList.asStateFlow()
+    val mangaList = mangaDao.getAllManga()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
-    private val _isLoading = MutableStateFlow(false)
-    val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
-
-    private val _searchQuery = MutableStateFlow("")
-    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
-
-    init {
-        loadManga()
-    }
-
-    private fun loadManga() {
-        _isLoading.value = true
-        viewModelScope.launch {
-            try {
-                mangaRepository.getAllManga().collect { mangas ->
-                    _mangaList.value = mangas
-                    _isLoading.value = false
-                }
-            } catch (e: Exception) {
-                Timber.e(e, "Error loading manga")
-                _isLoading.value = false
-            }
+    fun addToLibrary(manga: MangaEntity) {
+        viewModelScope.launch(Dispatchers.IO) {
+            mangaDao.insert(manga)
         }
     }
 
-    fun searchManga(query: String) {
-        _searchQuery.value = query
-        if (query.isEmpty()) {
-            loadManga()
-        } else {
-            viewModelScope.launch {
-                try {
-                    mangaRepository.searchManga(query).collect { mangas ->
-                        _mangaList.value = mangas
-                    }
-                } catch (e: Exception) {
-                    Timber.e(e, "Error searching manga")
-                }
-            }
+    fun removeFromLibrary(mangaId: Long) {
+        viewModelScope.launch(Dispatchers.IO) {
+            mangaDao.deleteById(mangaId)
         }
     }
 
-    fun deleteManga(mangaId: Long) {
-        viewModelScope.launch {
-            try {
-                mangaRepository.deleteManga(mangaId)
-                loadManga()
-            } catch (e: Exception) {
-                Timber.e(e, "Error deleting manga")
+    fun toggleFavorite(mangaId: Long) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val manga = mangaDao.getMangaByIdAsFlow(mangaId).firstOrNull()
+            if (manga != null) {
+                mangaDao.setFavorite(mangaId, !manga.isFavorite)
             }
         }
-    }
-
-    fun toggleFavorite(mangaId: Long, isFavorite: Boolean) {
-        viewModelScope.launch {
-            try {
-                mangaRepository.toggleFavorite(mangaId, isFavorite)
-                loadManga()
-            } catch (e: Exception) {
-                Timber.e(e, "Error toggling favorite")
-            }
-        }
-    }
-
-    fun refreshManga() {
-        loadManga()
     }
 }
