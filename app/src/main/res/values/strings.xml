@@ -1,21 +1,58 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">Manga Talk Reader</string>
-    <string name="action_settings">Настройки</string>
     <string name="title_library">Библиотека</string>
-    <string name="title_reader">Читалка</string>
-    <string name="title_settings">Настройки</string>
-    <string name="title_collections">Коллекции</string>
+    <string name="title_search">Поиск</string>
     <string name="title_sources">Источники</string>
+    <string name="title_settings">Настройки</string>
+    <string name="title_reader">Читалка</string>
+    <string name="title_collections">Коллекции</string>
+    <string name="title_manga_details">О манге</string>
+    
     <string name="search_hint">Поиск манги...</string>
     <string name="empty_library">Нет манги в библиотеке</string>
-    <string name="next_page">Следующая страница</string>
-    <string name="previous_page">Предыдущая страница</string>
-    <string name="add_manga">Добавить мангу</string>
-    <string name="delete">Удалить</string>
-    <string name="cancel">Отмена</string>
-    <string name="ok">OK</string>
     <string name="loading">Загрузка...</string>
     <string name="error">Ошибка</string>
     <string name="retry">Повторить</string>
+    <string name="cancel">Отмена</string>
+    <string name="delete">Удалить</string>
+    <string name="add_manga">Добавить мангу</string>
+    <string name="previous_page">Предыдущая страница</string>
+    <string name="next_page">Следующая страница</string>
+    <string name="ok">OK</string>
+    <string name="action_settings">Настройки</string>
+    
+    <!-- OCR Settings -->
+    <string name="settings_ocr_title">Распознавание текста (OCR)</string>
+    <string name="settings_ocr_enable">Включить OCR</string>
+    <string name="settings_ocr_language">Язык распознавания</string>
+    <string name="settings_ocr_status">Статус OCR</string>
+    <string name="settings_ocr_available">OCR доступен (ML Kit, работает офлайн)</string>
+    <string name="settings_ocr_not_available">OCR не доступен</string>
+    
+    <!-- TTS Settings -->
+    <string name="settings_tts_title">Синтез речи (TTS)</string>
+    <string name="settings_tts_enable">Включить озвучку текста</string>
+    <string name="settings_tts_rate">Скорость речи</string>
+    <string name="settings_tts_pitch">Высота голоса</string>
+    <string name="settings_tts_language">Язык озвучки</string>
+    <string name="settings_tts_status">Статус TTS</string>
+    <string name="settings_tts_available">TTS доступен (работает офлайн)</string>
+    <string name="settings_tts_not_available">TTS не доступен. Установите голосовые данные.</string>
+    <string name="settings_tts_test">Проверить озвучку</string>
+    
+    <!-- Reader Settings -->
+    <string name="settings_reader_title">Настройки читалки</string>
+    <string name="settings_reader_direction">Направление чтения</string>
+    <string name="settings_reader_direction_rtl">Справа налево (манга)</string>
+    <string name="settings_reader_direction_ltr">Слева направо</string>
+    <string name="settings_reader_scale_type">Масштабирование</string>
+    <string name="settings_reader_auto_rotate">Автоповорот</string>
+    <string name="settings_reader_keep_screen">Не выключать экран</string>
+    
+    <!-- Navigation -->
+    <string name="nav_library">Библиотека</string>
+    <string name="nav_search">Поиск</string>
+    <string name="nav_sources">Источники</string>
+    <string name="nav_settings">Настройки</string>
 </resources>

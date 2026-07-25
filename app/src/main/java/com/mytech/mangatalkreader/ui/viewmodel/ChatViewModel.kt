@@ -2,7 +2,7 @@ package com.mytech.mangatalkreader.ui.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.mytech.mangatalkreader.domain.service.TtsService
+import com.mytech.mangatalkreader.service.TtsService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -33,10 +33,10 @@ enum class AiPersona(
         "ru",
         mapOf(
             "манга" to "Я рекомендую начинать с классики — 'Akira', 'Ghost in the Shell', 'Berserk'. Для новичков отлично подходят 'One Piece' и 'My Hero Academia'!",
-            "аниме" to "Если понравилась манга, обязательно посмотри аниме-адаптацию! Часто там добавляют музыку и динамику.",
-            "рекомендация" to "Попробуй 'Vinland Saga' — историческая манга о викингах. Или 'Spy x Family' для лёгкого чтения!",
-            "жанр" to "Самые популярные жанры: shonen, shojo, seinen, isekai. Что тебе ближе?",
-            "читать" to "Мангу принято читать справа налево! Наш ридер поддерживает RTL-режим."
+            "аниме" to "Если понравилась манга, обязательно посмотри аниме-адаптацию! Часто там добавляют музыку и динамику, которые усиливают эмоции.",
+            "рекомендация" to "Попробуй 'Vinland Saga' — это историческая манга о викингах с потрясающим артом. Или 'Spy x Family' для лёгкого чтения!",
+            "жанр" to "Самые популярные жанры: shonen (для парней), shojo (для девушек), seinen (для взрослых), isekai (другой мир). Что тебе ближе?",
+            "читать" to "Мангу принято читать справа налево! Это японская традиция. Наш ридер поддерживает RTL-режим для удобства."
         )
     ),
     OCR_HELPER(
@@ -45,11 +45,11 @@ enum class AiPersona(
         "Помогает с распознаванием текста и переводом",
         "ru",
         mapOf(
-            "перевод" to "Я могу помочь перевести распознанный текст! Включи OCR в читалке и нажми кнопку перевода.",
-            "японский" to "Для японского текста используйте OCR с японским языком. Он распознает кана и кандзи.",
-            "текст" to "Если OCR плохо распознаёт — попробуй увеличить контраст или выбрать другой язык.",
-            "распознать" to "OCR поддерживает 5 языков: английский, японский, китайский, корейский и русский!",
-            "не работает" to "Проверь: 1) Язык OCR правильно выбран? 2) Картинка чёткая? 3) Модели ML Kit загружены?"
+            "перевод" to "Я могу помочь перевести распознанный текст! Японский → русский или английский. Включи OCR в читалке и нажми кнопку перевода.",
+            "японский" to "Для японского текста лучше всего использовать наш OCR с японским языком. Он распознает как кана (ひらがな/カタカナ), так и кандзи (漢字).",
+            "текст" to "Если OCR плохо распознаёт — попробуй увеличить контраст в настройках Image Preprocessor. Или выбери другой язык распознавания.",
+            "распознать" to "Наш OCR поддерживает 5 языков: английский, японский, китайский, корейский и деванагари. Переключайся в настройках!",
+            "не работает" to "Проверь: 1) Язык OCR правильно выбран? 2) Картинка чёткая? 3) ML Kit модели загружены? Они скачиваются автоматически при первом использовании."
         )
     ),
     TTS_VOICE(
@@ -58,11 +58,11 @@ enum class AiPersona(
         "Настраивает озвучку и помогает с TTS",
         "ru",
         mapOf(
-            "озвучка" to "Я могу озвучить любой распознанный текст! Настрой скорость и тон в настройках.",
-            "голос" to "Скорость речи от 0.5x до 2x, тон от 0.5 до 2.0. Попробуй разные комбинации!",
-            "не говорит" to "Проверь: 1) TTS включён? 2) Языковые данные установлены? 3) Громкость не на нуле?",
-            "японский" to "Для японского TTS нужен японский голос в настройках Android. Google TTS поддерживает.",
-            "настройка" to "Лучшие настройки для манги: скорость 0.8x (для диалогов), тон 1.0."
+            "озвучка" to "Я могу озвучить любой распознанный текст! Настрой скорость и тон в настройках. Поддерживаемые языки: русский, английский, японский.",
+            "голос" to "Скорость речи можно настроить от 0.5x до 2x. Тон — от 0.5 до 2.0. Попробуй разные комбинации для лучшего восприятия!",
+            "не говорит" to "Проверь: 1) TTS включён? 2) Языковые данные установлены в системе? 3) Громкость не на нуле? В Settings есть кнопка проверки.",
+            "японский" to "Для японского TTS нужно установить японский голос в настройках Android. Обычно Google TTS поддерживает японский.",
+            "настройка" to "Лучшие настройки для манги: скорость 0.8x (немного медленнее для диалогов), тон 1.0. Для описаний можно ускорить до 1.2x."
         )
     )
 }
@@ -93,6 +93,7 @@ class ChatViewModel @Inject constructor(
         )
         _messages.value = _messages.value + userMessage
 
+        // Each active AI responds with relevant info
         viewModelScope.launch {
             val personas = _activePersonas.value
             for (persona in personas) {
@@ -105,9 +106,11 @@ class ChatViewModel @Inject constructor(
                 )
                 _messages.value = _messages.value + aiMessage
 
+                // Speak AI responses in turn
                 _speakingPersonaName.value = persona.displayName
                 _isSpeaking.value = true
-                ttsService.speak(response, persona.language)
+                ttsService.speak("${persona.displayName} говорит: $response")
+                // Small delay between personas
                 kotlinx.coroutines.delay(500)
             }
             _isSpeaking.value = false
@@ -117,6 +120,7 @@ class ChatViewModel @Inject constructor(
 
     private fun generateAiResponse(persona: AiPersona, userText: String): String {
         val lower = userText.lowercase()
+        // Find best matching key
         val bestMatch = persona.sampleResponses.entries
             .filter { lower.contains(it.key) }
             .maxByOrNull { it.key.length }
@@ -126,9 +130,9 @@ class ChatViewModel @Inject constructor(
     fun togglePersona(persona: AiPersona, isActive: Boolean) {
         val current = _activePersonas.value
         _activePersonas.value = if (isActive) {
-            (current + persona).distinctBy { it.displayName }
+            current + persona
         } else {
-            current.filter { it.displayName != persona.displayName }
+            current - persona
         }
     }
 
