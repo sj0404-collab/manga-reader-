@@ -5,12 +5,25 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.mytech.mangatalkreader.ui.screen.ChatScreen
 import com.mytech.mangatalkreader.ui.screen.LibraryScreen
 import com.mytech.mangatalkreader.ui.screen.ReaderScreen
 import com.mytech.mangatalkreader.ui.screen.SettingsScreen
 import com.mytech.mangatalkreader.ui.screen.CollectionsScreen
 import com.mytech.mangatalkreader.ui.screen.SourcesScreen
 import com.mytech.mangatalkreader.ui.screen.MainScreen
+
+sealed class Screen(val route: String) {
+    data object Main : Screen("main")
+    data object Library : Screen("library")
+    data object Reader : Screen("reader/{mangaId}") {
+        fun createRoute(mangaId: Long) = "reader/$mangaId"
+    }
+    data object Collections : Screen("collections")
+    data object Sources : Screen("sources")
+    data object Settings : Screen("settings")
+    data object Chat : Screen("chat")
+}
 
 @Composable
 fun AppNavigation() {
@@ -35,6 +48,9 @@ fun AppNavigation() {
         }
         composable("settings") {
             SettingsScreen(navController)
+        }
+        composable("chat") {
+            ChatScreen()
         }
     }
 }

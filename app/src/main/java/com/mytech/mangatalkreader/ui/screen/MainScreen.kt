@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Bookmark
+import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.Collections
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.FloatingActionButton
@@ -47,8 +48,8 @@ fun MainScreen(navController: NavController) {
                 NavigationBarItem(
                     selected = selectedTab == 2,
                     onClick = { selectedTab = 2 },
-                    icon = { Icon(Icons.Default.Add, contentDescription = "Sources") },
-                    label = { Text("Источники") }
+                    icon = { Icon(Icons.Default.Chat, contentDescription = "Chat") },
+                    label = { Text("AI Чат") }
                 )
                 NavigationBarItem(
                     selected = selectedTab == 3,
@@ -79,7 +80,7 @@ fun MainScreen(navController: NavController) {
             when (selectedTab) {
                 0 -> LibraryScreen(navController)
                 1 -> CollectionsScreen(navController)
-                2 -> SourcesScreen(navController)
+                2 -> ChatScreen()
                 3 -> SettingsScreen(navController)
             }
         }
