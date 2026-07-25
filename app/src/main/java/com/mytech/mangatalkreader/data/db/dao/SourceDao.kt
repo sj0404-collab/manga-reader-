@@ -34,6 +34,6 @@ interface SourceDao {
     @Query("DELETE FROM source WHERE id = :id")
     suspend fun deleteById(id: Long)
 
-    @Query("UPDATE source SET lastChecked = datetime('now') WHERE id = :id")
+    @Query("UPDATE source SET lastChecked = (strftime('%s','now') * 1000) WHERE id = :id")
     suspend fun updateLastChecked(id: Long)
 }

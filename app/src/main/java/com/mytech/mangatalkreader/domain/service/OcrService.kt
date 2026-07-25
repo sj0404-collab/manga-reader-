@@ -8,10 +8,12 @@ import com.google.mlkit.vision.text.latin.TextRecognizerOptions
 import com.mytech.mangatalkreader.data.model.TextBlock
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import timber.log.Timber
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.coroutines.resume
 
 @Singleton
 class OcrService @Inject constructor(
@@ -22,34 +24,35 @@ class OcrService @Inject constructor(
     suspend fun recognizeText(bitmap: Bitmap): List<TextBlock> = withContext(Dispatchers.Default) {
         try {
             val image = InputImage.fromBitmap(bitmap, 0)
-            val task = recognizer.process(image)
-
-            var textBlocks = listOf<TextBlock>()
-            task.addOnSuccessListener { visionText ->
-                textBlocks = visionText.textBlocks.mapIndexed { index, block ->
-                    val boundingBox = block.boundingBox
-                    TextBlock(
-                        id = 0,
-                        chapterId = 0,
-                        pageNumber = 0,
-                        text = block.text,
-                        type = detectTextType(block.text),
-                        language = detectLanguage(block.text),
-                        x = boundingBox?.left?.toFloat() ?: 0f,
-                        y = boundingBox?.top?.toFloat() ?: 0f,
-                        width = (boundingBox?.right?.toFloat() ?: 0f) - (boundingBox?.left?.toFloat() ?: 0f),
-                        height = (boundingBox?.bottom?.toFloat() ?: 0f) - (boundingBox?.top?.toFloat() ?: 0f),
-                        textColor = -1,
-                        backgroundColor = null,
-                        fontSize = calculateFontSize(block),
-                        isManual = false
-                    )
+            val visionText = suspendCancellableCoroutine<com.google.mlkit.vision.text.Text> { cont ->
+                val task = recognizer.process(image)
+                task.addOnSuccessListener { visionText ->
+                    cont.resume(visionText)
+                }.addOnFailureListener { exception ->
+                    cont.resume(com.google.mlkit.vision.text.Text(emptyList(), emptyList()))
+                    Timber.e(exception, "OCR recognition failed")
                 }
-            }.addOnFailureListener { exception ->
-                Timber.e(exception, "OCR recognition failed")
             }
 
-            textBlocks
+            visionText.textBlocks.mapIndexed { index, block ->
+                val boundingBox = block.boundingBox
+                TextBlock(
+                    id = 0,
+                    chapterId = 0,
+                    pageNumber = 0,
+                    text = block.text,
+                    type = detectTextType(block.text),
+                    language = detectLanguage(block.text),
+                    x = boundingBox?.left?.toFloat() ?: 0f,
+                    y = boundingBox?.top?.toFloat() ?: 0f,
+                    width = (boundingBox?.right?.toFloat() ?: 0f) - (boundingBox?.left?.toFloat() ?: 0f),
+                    height = (boundingBox?.bottom?.toFloat() ?: 0f) - (boundingBox?.top?.toFloat() ?: 0f),
+                    textColor = -1,
+                    backgroundColor = null,
+                    fontSize = calculateFontSize(block),
+                    isManual = false
+                )
+            }
         } catch (e: Exception) {
             Timber.e(e, "Error in OCR service")
             emptyList()
