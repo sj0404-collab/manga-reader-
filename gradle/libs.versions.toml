@@ -1,6 +1,6 @@
 [versions]
 agp = "8.2.0"
-kotlin = "1.9.20"
+kotlin = "1.9.22"
 hilt = "2.48"
 compose-bom = "2024.01.00"
 compose-compiler = "1.5.8"
