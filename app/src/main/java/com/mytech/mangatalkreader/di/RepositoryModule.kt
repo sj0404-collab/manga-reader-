@@ -4,7 +4,7 @@ import com.mytech.mangatalkreader.data.db.dao.ChapterDao
 import com.mytech.mangatalkreader.data.db.dao.CollectionDao
 import com.mytech.mangatalkreader.data.db.dao.MangaCollectionCrossRefDao
 import com.mytech.mangatalkreader.data.db.dao.MangaDao
-import com.mytech.mangatalkreader.data.db.dao.SourceDao
+import com.mytech.mangatalkreader.data.source.SourceRepository
 import com.mytech.mangatalkreader.data.db.dao.TextBlockDao
 import dagger.Module
 import dagger.Provides
@@ -48,12 +48,12 @@ object RepositoryModule {
     @Provides
     @Singleton
     fun provideSourceRepository(
-        sourceDao: SourceDao,
+        sourceRepository: SourceRepository,
         @ApplicationScope applicationScope: CoroutineScope,
         @IoDispatcher ioDispatcher: kotlinx.coroutines.CoroutineDispatcher
     ): com.mytech.mangatalkreader.domain.repository.SourceRepository {
         return com.mytech.mangatalkreader.data.repository.SourceRepositoryImpl(
-            sourceDao = sourceDao,
+            sourceRepository = sourceRepository,
             applicationScope = applicationScope,
             ioDispatcher = ioDispatcher
         )

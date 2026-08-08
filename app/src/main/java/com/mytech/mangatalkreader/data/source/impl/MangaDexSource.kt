@@ -345,7 +345,7 @@ class MangaDexSource(
         for (i in 0 until relationships.length()) {
             val rel = relationships.getJSONObject(i)
             if (rel.optString("type") == "cover_art") {
-                val fileName = rel.optString("attributes", JSONObject()).optString("fileName", "")
+                val fileName = rel.optJSONObject("attributes")?.optString("fileName", "") ?: ""
                 if (fileName.isNotEmpty()) {
                     val mangaId = data.getString("id")
                     return "$coverBaseUrl/covers/$mangaId/$fileName"

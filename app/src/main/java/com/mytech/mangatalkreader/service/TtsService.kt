@@ -61,7 +61,8 @@ class TtsService @Inject constructor(
 
             // Set a default language (US English)
             val defaultLocale = Locale.US
-            val result = tts.language = defaultLocale
+            tts.language = defaultLocale
+            val result = tts.language
             if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
                 emitEvent(TtsEvent.Error("Default language $defaultLocale is not available"))
             }

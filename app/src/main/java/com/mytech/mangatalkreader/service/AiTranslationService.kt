@@ -72,7 +72,7 @@ class AiTranslationService @Inject constructor(
             // Russian Cyrillic range: А-я (0x0410-0x044F) plus Ёё
             char.code in 0x0410..0x044F || char.code == 0x0401 || char.code == 0x0451
         }
-        return cyrillicCount.toFloat() / letters.size > 0.3f
+        return cyrillicCount.toFloat() / letters.length > 0.3f
     }
 
     /**

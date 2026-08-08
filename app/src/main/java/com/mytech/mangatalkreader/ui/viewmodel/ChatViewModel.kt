@@ -121,7 +121,7 @@ class ChatViewModel @Inject constructor(
             val hasApiKey = aiService.apiKey.isNotBlank()
 
             for (persona in personas) {
-                val response: String
+                var response: String
 
                 if (hasApiKey) {
                     // Use OpenRouter AI for real responses

@@ -21,7 +21,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Divider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -56,7 +56,7 @@ fun MangaDetailsScreen(
     onNavigateToReader: (Long) -> Unit,
     onNavigateBack: () -> Unit
 ) {
-    val sourceRepository = remember { SourceRepository() }
+    val sourceRepository = remember { SourceRepository(listOf(MangaDexSource())) }
     val source = remember { sourceRepository.getAllSources().firstOrNull() as? MangaDexSource }
     var chapters by remember { mutableStateOf<List<ChapterInfo>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
@@ -121,7 +121,7 @@ fun MangaDetailsScreen(
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold
                     )
-                    HorizontalDivider()
+                    Divider()
                 }
                 items(chapters, key = { it.id }) { chapter ->
                     ChapterItem(
@@ -173,7 +173,7 @@ private fun ChapterItem(
                 }
             }
             Text(
-                text = "${chapter.pagesCount} стр.",
+                text = "${chapter.pageCount} стр.",
                 fontSize = 12.sp,
                 color = MaterialTheme.colorScheme.primary
             )
